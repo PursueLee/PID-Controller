@@ -1,0 +1,54 @@
+#include <iostream>
+
+void PID_init();
+void PID_realize();
+
+struct PID
+{
+    float SetValue;
+    float ActualValue;
+    float err;
+    float err_last;
+    float kp,ki,kd;
+    float voltage;
+    float integral;
+}pid;
+
+int main()
+{
+    cout<<"System begin"<<endl;
+    int count=0;
+    while(cout<1000)
+    {
+        float speed=PID_realize(200.0)
+        cout<<"第"<<count<<"次速度为："<<speed<<endl;
+        count++;
+    }
+    return 0;
+}
+
+void PID_init()
+{
+    cout<<"Initial begin："<<endl;
+    pid.SetValue=0.0;
+    pid.ActualValue=0.0;
+    pid.err=0.0;
+    pid.err_last=0.0;
+    pid.voltage=0.0;
+    pid.integral=0.0;
+    pid.kp=0.2;
+    pid.ki=0.015;
+    pid.kd=0.2;
+    cout<<"Initial end."
+}
+
+float PID_realize(float speed)
+{
+    pid.SetValue=speed;
+    pid.err=pid.SetValue-pid.ActualValue;
+    pid.integral+=pid.err;
+    pid.voltage=pid.kp*pid.err+pid.ki*pid.integral+pid.kd*(pid.err-pid.err_last);
+    pid.err_last=pid.err;
+    pid.ActualValue=pid.voltage*1.0;
+    return pid.ActualValue;
+}
