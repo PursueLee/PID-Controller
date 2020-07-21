@@ -1,7 +1,7 @@
 #include <iostream>
 
 void PID_init();
-void PID_realize();
+float PID_realize(float);
 
 struct PID
 {
@@ -12,6 +12,7 @@ struct PID
     float kp,ki,kd;
     float voltage;
     float integral;
+    //float umax,umin; 可执行器的最大与最小值
 }pid;
 
 int main()
@@ -39,16 +40,70 @@ void PID_init()
     pid.kp=0.2;
     pid.ki=0.015;
     pid.kd=0.2;
-    cout<<"Initial end."
+    //pid.umax=400;
+    //pid.umin=-200;
+    cout<<"Initial end.";
 }
 
 float PID_realize(float speed)
 {
     pid.SetValue=speed;
     pid.err=pid.SetValue-pid.ActualValue;
+    /* 在实现公式的积分项前加一index，当最开始误差较大时取消积分作用
+    if(abs(pid.err>180))
+        index=0;
+    else
+    {
+        index=1;
+        pid.inregral+=pid.err;
+    }
+    */
     pid.integral+=pid.err;
     pid.voltage=pid.kp*pid.err+pid.ki*pid.integral+pid.kd*(pid.err-pid.err_last);
     pid.err_last=pid.err;
     pid.ActualValue=pid.voltage*1.0;
     return pid.ActualValue;
 }
+
+/****************抗积分饱和的实现
+float PID_realize(float speed)
+{
+    pid.SetValue=speed;
+    pid.err=pid.SetValue-pid.ActualValue;
+    if(pid.ActualValue>pid.umax)
+    {
+        if(abs(pid.err)>200)  //防止err为负值但是过小，采用了积分分离；
+            index=0;
+        else if(pid.error<0)
+        {
+            index=1;
+            pid.integral+=pid.err;
+        }
+    }
+    else if(pid.ActualValue<pid.umin)
+    {
+        if(abs(pid.err>200))
+            index=0;
+        else if(pid.err>0)
+        {
+            index=1;
+            pid.integral+=pid.err;
+        }
+    }
+    else
+    {
+        if(abs(pid.err>200))
+            index=0;
+        else
+        {
+            index=1;
+            pid.integral+=pid.err;
+        }
+    }
+    pid.integral+=pid.err;
+    pid.voltage=pid.kp*pid.err+pid.ki*pid.integral+pid.kd*(pid.err-pid.err_last);
+    pid.err_last=pid.err;
+    pid.ActualValue=pid.voltage*1.0;
+    return pid.ActualValue;
+}
+***************************/
